@@ -1,3 +1,0 @@
-/home/pranith/TradeManagement (copy)/build/CMakeFiles/TradingClient.dir
-/home/pranith/TradeManagement (copy)/build/CMakeFiles/edit_cache.dir
-/home/pranith/TradeManagement (copy)/build/CMakeFiles/rebuild_cache.dir

@@ -12,7 +12,7 @@
 typedef websocketpp::client<websocketpp::config::asio_tls_client> client;
 using json = nlohmann::json;
 
-// utility function for cURL response handling
+//  Used by cURL to write the response from the server into a string.
 size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
     ((std::string *)userp)->append((char *)contents, size * nmemb);
@@ -82,12 +82,11 @@ public:
     {
         return accessToken;
     }
-
+    // Constructor
     TradingClient(const std::string &id, const std::string &secretId) : clientId(id), clientSecretId(secretId)
     {
-        wsClient.clear_access_channels(websocketpp::log::alevel::all); // Disable all access channel logs
-        wsClient.clear_error_channels(websocketpp::log::elevel::all);  // Disable all error channel logs
-
+        wsClient.clear_access_channels(websocketpp::log::alevel::all);
+        wsClient.clear_error_channels(websocketpp::log::elevel::all);
         wsClient.init_asio();
         wsClient.set_open_handler(std::bind(&TradingClient::on_open, this, std::placeholders::_1));
         wsClient.set_message_handler(std::bind(&TradingClient::on_message, this, std::placeholders::_1, std::placeholders::_2));
@@ -109,43 +108,35 @@ public:
         isConnected = true;
         std::cout << "WebSocket connection established." << std::endl;
     }
-
+    // Output From websocket
     void on_message(websocketpp::connection_hdl hdl, client::message_ptr msg)
     {
         std::string received_msg = msg->get_payload();
-
         try
         {
-            // Parse the received WebSocket message into JSON
             json response = json::parse(received_msg);
-
-            // Check if the response contains "params"
             if (response.contains("params"))
             {
                 update_counter++;
                 std::cout << "Update #" << update_counter << std::endl;
-                // Extract the "params" part
                 auto params = response["params"];
-
-                // If the message has "data", format it accordingly
                 if (params.contains("data"))
                 {
                     auto data = params["data"];
-
-                    // Output the formatted response
-                    // std::cout << "Formatted Response: " << formatted_response.dump(2) << std::endl;
-
-                    // Optional: If you want to track updates over time (e.g., every 100ms), you could track changes:
                     static json previous_data;
                     if (data != previous_data)
                     {
                         std::cout << "Data updated: " << data.dump(4) << std::endl;
-                        previous_data = data; // Update the previous data
+                        previous_data = data;
                     }
                     else
                     {
                         std::cout << "No new updates." << std::endl;
                     }
+                }
+                else if (params.contains("error"))
+                {
+                    std::cout << "Error: " << params["error"].dump(4) << std::endl;
                 }
             }
         }
@@ -160,7 +151,7 @@ public:
         isConnected = false;
         std::cout << "WebSocket connection closed." << std::endl;
     }
-
+    // Function to connect websocket
     void connectWebSocket()
     {
         websocketpp::lib::error_code ec;
@@ -189,10 +180,13 @@ public:
                                { wsClient.run(); });
     }
 
+    // Function to send message through websocket
     void sendWebSocketMessage(const std::string &message)
     {
         if (isConnected)
         {
+            // Start timer
+            auto start_time = std::chrono::high_resolution_clock::now();
             wsClient.send(hdl, message, websocketpp::frame::opcode::text);
         }
         else
@@ -200,6 +194,7 @@ public:
             std::cerr << "Cannot send message. WebSocket not connected." << std::endl;
         }
     }
+    // Function for Subscribing to orderBook
     void subscribeToOrderBook(const std::string &instrument, int duration_seconds)
     {
         std::cout << "Subscribed to:" << instrument << std::endl;
@@ -217,6 +212,7 @@ public:
             wsClient.close(hdl, 1000, "Closing after timeout"); })
             .detach();
     }
+    // Function to show subscription
     void showSubscriptions()
     {
         std::cout << "Subscribed to:" << std::endl;
@@ -225,7 +221,7 @@ public:
             std::cout << instrument << std::endl;
         }
     }
-
+    // Function to authenticate and get accesstoken
     void authenticate()
     {
         json payload = {
@@ -235,9 +231,7 @@ public:
             {"jsonrpc", "2.0"}};
 
         std::string res = sendRequest("public/auth", payload);
-        // std::cout << "Raw Response: " << res << std::endl; // Debug line
         auto responseJson = json::parse(res);
-
         if (responseJson.contains("result") && responseJson["result"].contains("access_token"))
         {
             accessToken = responseJson["result"]["access_token"];
@@ -266,11 +260,7 @@ public:
                            {"amount", amount},
                        }},
             {"id", 1}};
-
-        // Send the request to place the order
         std::string response = sendRequest("private/buy", payload, accessToken);
-
-        // Check for errors
         if (!response.empty())
         {
             try
@@ -299,7 +289,7 @@ public:
             std::cout << "No response received or error occurred." << std::endl;
         }
     }
-
+    // Function to get all orders
     void getAllOpenOrders()
     {
         json payload = {
@@ -323,7 +313,6 @@ public:
                 {
                     auto orders = responseJson["result"];
                     std::cout << "All Open Orders in detail: " << orders.dump(4) << std::endl;
-
                     // Loop through orders safely
                     for (const auto &order : orders)
                     {
@@ -355,7 +344,7 @@ public:
             std::cerr << "An error occurred: " << e.what() << std::endl;
         }
     }
-
+    // Function to cancel order
     void cancelOrder(const std::string &accesstoken, const std::string &orderId)
     {
         json payload = {
@@ -374,7 +363,7 @@ public:
             std::cout << "Cancelled Order: " << std::endl;
         }
     }
-
+    // Function to modify order
     void modifyOrder(const std::string &accesstoken, const std::string &orderId, double newPrice, double newAmount)
     {
         json payload = {
@@ -383,7 +372,6 @@ public:
             {"params", {{"order_id", orderId}, {"price", newPrice}, {"amount", newAmount}}},
             {"id", 4}};
         std::string response = sendRequest("private/edit", payload, accessToken);
-
         if (!response.empty())
         {
             try
@@ -412,7 +400,7 @@ public:
             std::cout << "No response received or error occurred." << std::endl;
         }
     }
-
+    // Function to get orderbook
     void getOrderBook(const std::string &instrument, int depth)
     {
         json payload = {
@@ -474,7 +462,7 @@ public:
             }
         }
     }
-
+    // Function to get position
     void getPositions(const std::string &accessToken, const std::string &currency, const std::string &kind)
     {
         json payload = {
@@ -530,7 +518,7 @@ public:
                         std::cout << "-----------------------------------------\n";
                     }
                 }
-                if (responseJson.contains("error") && responseJson["error"].contains("data") && responseJson["error"]["data"].contains("reason"))
+                else if (responseJson.contains("error") && responseJson["error"].contains("data") && responseJson["error"]["data"].contains("reason"))
                 {
                     std::cerr << "Error Details: " << responseJson["error"]["data"]["reason"] << std::endl;
                 }
@@ -554,7 +542,7 @@ public:
 int TradingClient::update_counter = 0;
 int main()
 {
-    
+
     std::string clientId, clientSecret;
     std::cout << "Enter your publicId: ";
     std::cin >> clientId;
@@ -596,11 +584,6 @@ int main()
                 double price, amount;
                 std::cout << "Enter instrument name: ";
                 std::cin >> instrument;
-                // if (!client.isInstrumentValid(instrument))
-                // {
-                //     std::cerr << "Invalid instrument name. Please try again." << std::endl;
-                //     break;
-                // }
                 std::cout << "Enter price: ";
                 std::cin >> price;
                 std::cout << "Enter amount: ";
@@ -699,6 +682,5 @@ int main()
     {
         std::cerr << "Access token not retrieved. Exiting." << std::endl;
     }
-
     return 0;
 }
