@@ -40,7 +40,7 @@ sudo apt install nlohmann-json3-dev
 sudo apt update
 sudo apt install libwebsocketpp-dev
 ```
-    - ***Verify Installation***:
+   - ***Verify Installation***:
         - Check that the WebSocket++ header files are installed at 
             `/usr/include/websocketpp`
 
