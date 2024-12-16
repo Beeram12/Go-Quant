@@ -18,28 +18,28 @@ The following libraries and tools are required to build and run the project:
    - Used for making jsonRPC HTTP requests.
    - **Installation**:
      - Linux: 
-        ```bash
-            sudo apt install libcurl4-openssl-dev
-        ```
+```bash
+sudo apt install libcurl4-openssl-dev
+```
      
 
 2. **[nlohmann/json](https://github.com/nlohmann/json)**:
    - A C++ JSON library for parsing API responses.
    - **Installation**:
        - Linux: 
-        ```bash
-            sudo apt install nlohmann-json3-dev
-        ```
+```bash
+sudo apt install nlohmann-json3-dev
+```
        
 
 3. **[websocketpp](https://github.com/zaphoyd/websocketpp)**:
    - A C++ WebSocket library for real-time communication.
    - **Installation**:
      - Linux(Ubuntu):
-        ```bash
-        sudo apt update
-        sudo apt install libwebsocketpp-dev
-        ```
+```bash
+sudo apt update
+sudo apt install libwebsocketpp-dev
+```
     - ***Verify Installation***:
         - Check that the WebSocket++ header files are installed at 
             `/usr/include/websocketpp`
@@ -48,25 +48,25 @@ The following libraries and tools are required to build and run the project:
    - Required by `websocketpp` for ASIO and SSL.
    - **Installation**:
      - Linux: 
-        ```bash
-        sudo apt install libboost-all-dev
-        ```
+```bash
+sudo apt install libboost-all-dev
+```
 
 5. **CMake**:
    - Build system generator.
    - **Installation**:
      - Linux: 
-        ```bash
-        sudo apt install cmake
-        ```
+```bash
+sudo apt install cmake
+```
 
 6. **[OpenSSL](https://www.openssl.org/)**:
    - Provides TLS/SSL support for secure WebSocket connections.
    - **Installation**:
      - Linux: 
-      ```bash
-      sudo apt install libssl-dev
-      ```
+```bash
+sudo apt install libssl-dev
+```
 
 
 ## Installation Instructions
@@ -91,9 +91,9 @@ make
 ## Usage 
 
 1. **Running the Client**
-    ```bash
-    ./TradingClient
-    ```
+```bash
+./TradingClient
+```
 ## Features
 
 - **Authenticate**: Logs in using your client ID and secret.
