@@ -368,7 +368,7 @@ public:
     {
         json payload = {
             {"jsonrpc", "2.0"},
-            {"method", "private/modifyOrder"},
+            {"method", "private/edit"},
             {"params", {{"order_id", orderId}, {"price", newPrice}, {"amount", newAmount}}},
             {"id", 4}};
         std::string response = sendRequest("private/edit", payload, accessToken);
@@ -502,7 +502,7 @@ int TradingClient::update_counter = 0;
 int main()
 {
     std::string clientId, clientSecret;
-    
+
     // Input for public and private IDs
     std::cout << "Enter your publicId: ";
     std::cin >> clientId;
@@ -607,7 +607,6 @@ int main()
             double price, amount;
             std::cout << "Enter orderId: ";
             std::cin >> orderId;
-            std::cout << "Enter orderId: ";
             std::cout << "Enter new price: ";
             std::cin >> price;
             std::cout << "Enter new amount: ";
