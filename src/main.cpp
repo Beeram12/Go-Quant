@@ -603,10 +603,11 @@ int main()
         case 4:
         {
             // Modify Order
-            std::string instrument;
+            std::string orderId;
             double price, amount;
-            std::cout << "Enter instrument name: ";
-            std::cin >> instrument;
+            std::cout << "Enter orderId: ";
+            std::cin >> orderId;
+            std::cout << "Enter orderId: ";
             std::cout << "Enter new price: ";
             std::cin >> price;
             std::cout << "Enter new amount: ";
@@ -614,7 +615,7 @@ int main()
 
             if (!std::cin.fail())
             {
-                client.modifyOrder(instrument, accessToken, price, amount);
+                client.modifyOrder(accessToken, orderId, price, amount);
             }
             else
             {
