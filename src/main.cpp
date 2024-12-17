@@ -415,24 +415,9 @@ public:
         if (responseJson.contains("result"))
         {
             const auto &result = responseJson["result"];
-
             std::cout << "Order Book for " << instrument << ":\n";
-
             // Print general details
-            std::cout << "Timestamp: " << result["timestamp"] << '\n';
-            std::cout << "State: " << result["state"] << '\n';
-            std::cout << "Index Price: " << result["index_price"] << '\n';
-            std::cout << "Last Price: " << result["last_price"] << '\n';
-            std::cout << "Settlement Price: " << result["settlement_price"] << '\n';
-            std::cout << "Min Price: " << result["min_price"] << '\n';
-            std::cout << "Max Price: " << result["max_price"] << '\n';
-            std::cout << "Open Interest: " << result["open_interest"] << '\n';
-            std::cout << "Mark Price: " << result["mark_price"] << '\n';
-            std::cout << "Best Bid Price: " << result["best_bid_price"]
-                      << ", Amount: " << result["best_bid_amount"] << '\n';
-            std::cout << "Best Ask Price: " << result["best_ask_price"]
-                      << ", Amount: " << result["best_ask_amount"] << '\n';
-
+            std::cout << result.dump(4) << std::endl;
             // Print bids
             if (result.contains("bids"))
             {
@@ -442,7 +427,6 @@ public:
                     std::cout << "Price: " << bid[0] << ", Amount: " << bid[1] << '\n';
                 }
             }
-
             // Print asks
             if (result.contains("asks"))
             {
@@ -490,33 +474,7 @@ public:
                 if (responseJson.contains("result"))
                 {
                     auto positions = responseJson["result"];
-
-                    for (const auto &position : positions)
-                    {
-                        // Extract and print only the required fields with correct keys and default values
-                        std::cout << "Instrument: " << position.value("instrument_name", "Unknown") << "\n";
-                        std::cout << "Kind: " << position.value("kind", "Unknown") << "\n";
-                        std::cout << "Size: " << position.value("size", 0) << "\n";
-                        std::cout << "Average Price: " << position.value("average_price", 0.0) << "\n";
-                        std::cout << "Direction: " << position.value("direction", "Unknown") << "\n";
-                        std::cout << "Size BTC: " << position.value("size_currency", 0.0) << "\n";
-                        std::cout << "Floating PnL: " << position.value("floating_profit_loss", 0.0) << "\n";
-                        std::cout << "Realized PnL: " << position.value("realized_profit_loss", 0.0) << "\n";
-                        std::cout << "Estimated Liquidation Price: "
-                                  << (position.contains("estimated_liquidation_price") && !position["estimated_liquidation_price"].is_null()
-                                          ? position["estimated_liquidation_price"].get<double>()
-                                          : 0.0)
-                                  << "\n";
-                        std::cout << "Mark Price: " << position.value("mark_price", 0.0) << "\n";
-                        std::cout << "Index Price: " << position.value("index_price", 0.0) << "\n";
-                        std::cout << "Maintenance Margin: " << position.value("maintenance_margin", 0.0) << "\n";
-                        std::cout << "Initial Margin: " << position.value("initial_margin", 0.0) << "\n";
-                        std::cout << "Settlement Price: " << position.value("settlement_price", 0.0) << "\n";
-                        std::cout << "Delta: " << position.value("delta", 0.0) << "\n";
-                        std::cout << "Open Order Margin: " << position.value("open_orders_margin", 0.0) << "\n";
-                        std::cout << "Profit/Loss: " << position.value("total_profit_loss", 0.0) << "\n";
-                        std::cout << "-----------------------------------------\n";
-                    }
+                    std::cout << positions.dump(4) << std::endl;
                 }
                 else if (responseJson.contains("error") && responseJson["error"].contains("data") && responseJson["error"]["data"].contains("reason"))
                 {
@@ -540,10 +498,12 @@ public:
     }
 };
 int TradingClient::update_counter = 0;
+
 int main()
 {
-
     std::string clientId, clientSecret;
+    
+    // Input for public and private IDs
     std::cout << "Enter your publicId: ";
     std::cin >> clientId;
     std::cout << "Enter your privateId: ";
@@ -555,132 +515,174 @@ int main()
     // Authenticating
     client.authenticate();
 
-    // Getting the access token
-    const std::string accesstoken = client.getAccessToken();
-    if (!client.getAccessToken().empty())
-    {
-        while (true)
-        {
-            int choice;
-            std::cout << "\nSelect an option:\n";
-            std::cout << "1. Place Order\n";
-            std::cout << "2. Get All Open Orders\n";
-            std::cout << "3. Get Order Book\n";
-            std::cout << "4. Modify Order\n";
-            std::cout << "5. Cancel Order\n";
-            std::cout << "6. Get Positions\n";
-            std::cout << "7.Subscribe to Orderbook\n";
-            std::cout << "8.Show all subscriptions\n";
-            std::cout << "9. Exit\n";
-            std::cout << "Enter your choice: ";
-            std::cin >> choice;
-
-            switch (choice)
-            {
-            case 1:
-            {
-                // Place Order
-                std::string instrument;
-                double price, amount;
-                std::cout << "Enter instrument name: ";
-                std::cin >> instrument;
-                std::cout << "Enter price: ";
-                std::cin >> price;
-                std::cout << "Enter amount: ";
-                std::cin >> amount;
-                client.placeOrder(instrument, accesstoken, price, amount);
-                break;
-            }
-            case 2:
-            {
-                // Get All Open Orders
-                client.getAllOpenOrders();
-                break;
-            }
-            case 3:
-            {
-                // Get Order Book
-                std::string instrument;
-                int depth;
-                std::cout << "Enter instrument name: ";
-                std::cin >> instrument;
-                std::cout << "Enter depth: ";
-                std::cin >> depth;
-                client.getOrderBook(instrument, depth);
-                break;
-            }
-            case 4:
-            {
-                // Modify Order
-                std::string instrument;
-                int price, amount;
-                std::cout << "Enter instrument name: ";
-                std::cin >> instrument;
-                std::cout << "Enter price: ";
-                std::cin >> price;
-                std::cout << "Enter amount: ";
-                std::cin >> amount;
-                client.modifyOrder(instrument, accesstoken, price, amount);
-                break;
-            }
-            case 5:
-            {
-                // Cancel Order
-                std::string orderId;
-                std::cout << "Enter order id: ";
-                std::cin >> orderId;
-                client.cancelOrder(accesstoken, orderId);
-                break;
-            }
-            case 6:
-            {
-                // Get Positions
-                std::string currency;
-                std::cout << "Enter currency like BTC,ETH,EURR,USDC: ";
-                std::cin >> currency;
-                std::string kind;
-                std::cout << "Enter kind like future,option,spot,: ";
-                std::cin >> kind;
-                client.getPositions(accesstoken, currency, kind);
-                break;
-            }
-            case 7:
-            {
-                // Subscribe to Orderbook
-                std::string instrument;
-                std::cout << "Enter instrument name: ";
-                std::cin >> instrument;
-                int duration;
-                std::cout << "Enter duration to get message:";
-                std::cin >> duration;
-                client.connectWebSocket();
-                std::this_thread::sleep_for(std::chrono::seconds(2)); // Give some time for the connection to establish
-                // Subscribe to the order book for the instrument you want
-                client.subscribeToOrderBook(instrument, duration); // You can pass the instrument here
-                std::this_thread::sleep_for(std::chrono::seconds(30));
-                break;
-            }
-            case 8:
-            {
-                // Get all subscriptions
-                client.showSubscriptions();
-                break;
-            }
-            case 9:
-            {
-                // Exit
-                std::cout << "Exiting program...\n";
-                return 0;
-            }
-            default:
-                std::cout << "Invalid choice. Please try again.\n";
-                break;
-            }
-        }
-    }
-    else
+    // Check for successful authentication
+    const std::string accessToken = client.getAccessToken();
+    if (accessToken.empty())
     {
         std::cerr << "Access token not retrieved. Exiting." << std::endl;
+        return 1;
+    }
+
+    // Main menu loop
+    while (true)
+    {
+        int choice;
+        std::cout << "\nSelect an option:\n";
+        std::cout << "1. Place Order\n";
+        std::cout << "2. Get All Open Orders\n";
+        std::cout << "3. Get Order Book\n";
+        std::cout << "4. Modify Order\n";
+        std::cout << "5. Cancel Order\n";
+        std::cout << "6. Get Positions\n";
+        std::cout << "7. Subscribe to Orderbook\n";
+        std::cout << "8. Show all subscriptions\n";
+        std::cout << "9. Exit\n";
+        std::cout << "Enter your choice: ";
+
+        if (!(std::cin >> choice))
+        {
+            std::cerr << "Invalid input. Please enter a number between 1 and 9.\n";
+            std::cin.clear();                                                   // Clear error state
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Discard invalid input
+            continue;
+        }
+
+        switch (choice)
+        {
+        case 1:
+        {
+            // Place Order
+            std::string instrument;
+            double price, amount;
+            std::cout << "Enter instrument name: ";
+            std::cin >> instrument;
+            std::cout << "Enter price: ";
+            std::cin >> price;
+            std::cout << "Enter amount: ";
+            std::cin >> amount;
+
+            if (!std::cin.fail())
+            {
+                client.placeOrder(instrument, accessToken, price, amount);
+            }
+            else
+            {
+                std::cerr << "Invalid input for price or amount. Please try again.\n";
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+            break;
+        }
+        case 2:
+            // Get All Open Orders
+            client.getAllOpenOrders();
+            break;
+
+        case 3:
+        {
+            // Get Order Book
+            std::string instrument;
+            int depth;
+            std::cout << "Enter instrument name: ";
+            std::cin >> instrument;
+            std::cout << "Enter depth: ";
+            std::cin >> depth;
+
+            if (!std::cin.fail())
+            {
+                client.getOrderBook(instrument, depth);
+            }
+            else
+            {
+                std::cerr << "Invalid input for depth. Please try again.\n";
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+            break;
+        }
+        case 4:
+        {
+            // Modify Order
+            std::string instrument;
+            double price, amount;
+            std::cout << "Enter instrument name: ";
+            std::cin >> instrument;
+            std::cout << "Enter new price: ";
+            std::cin >> price;
+            std::cout << "Enter new amount: ";
+            std::cin >> amount;
+
+            if (!std::cin.fail())
+            {
+                client.modifyOrder(instrument, accessToken, price, amount);
+            }
+            else
+            {
+                std::cerr << "Invalid input for price or amount. Please try again.\n";
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+            break;
+        }
+        case 5:
+        {
+            // Cancel Order
+            std::string orderId;
+            std::cout << "Enter order ID: ";
+            std::cin >> orderId;
+            client.cancelOrder(accessToken, orderId);
+            break;
+        }
+        case 6:
+        {
+            // Get Positions
+            std::string currency, kind;
+            std::cout << "Enter currency (e.g., BTC, ETH, EUR): ";
+            std::cin >> currency;
+            std::cout << "Enter kind (e.g., future, option): ";
+            std::cin >> kind;
+            client.getPositions(accessToken, currency, kind);
+            break;
+        }
+        case 7:
+        {
+            // Subscribe to Orderbook
+            std::string instrument;
+            int duration;
+            std::cout << "Enter instrument name: ";
+            std::cin >> instrument;
+            std::cout << "Enter subscription duration (seconds): ";
+            std::cin >> duration;
+
+            if (!std::cin.fail())
+            {
+                client.connectWebSocket();
+                std::this_thread::sleep_for(std::chrono::seconds(2)); // Wait for connection
+                client.subscribeToOrderBook(instrument, duration);
+                std::this_thread::sleep_for(std::chrono::seconds(duration));
+            }
+            else
+            {
+                std::cerr << "Invalid input for duration. Please try again.\n";
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+            break;
+        }
+        case 8:
+            // Show all subscriptions
+            client.showSubscriptions();
+            break;
+
+        case 9:
+            // Exit
+            std::cout << "Exiting program...\n";
+            return 0;
+
+        default:
+            std::cerr << "Invalid choice. Please select a number between 1 and 9.\n";
+            break;
+        }
     }
     return 0;
 }
